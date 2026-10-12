@@ -10,6 +10,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
@@ -18,14 +19,23 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      # Installs Gradle 8.9 (required by AGP 8.7.x) and caches dependencies.
-      # No Gradle wrapper is committed, so this provides the `gradle` command.
+      # Gradle 8.9 is required by AGP 8.7.x. No wrapper is committed, so this provides `gradle`.
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
 
       - name: Unit tests and debug APK
-        run: gradle --no-daemon --stacktrace :app:testDebugUnitTest :app:assembleDebug
+        shell: bash
+        run: |
+          set -o pipefail
+          gradle --no-daemon --stacktrace --console=plain :app:testDebugUnitTest :app:assembleDebug 2>&1 | tee build.log
+
+      - name: Show the real error (only on failure)
+        if: failure()
+        shell: bash
+        run: |
+          echo "=========== COMPILER / GRADLE ERRORS ==========="
+          grep -n -E "^e: |^w: .*error|What went wrong|Execution failed|FAILED|error:" -A8 build.log | head -200 || true
 
       - name: Name the APK
         run: |
@@ -46,6 +56,7 @@ jobs:
         with:
           name: build-reports
           path: |
+            build.log
             app/build/reports
             app/build/test-results
           if-no-files-found: ignore

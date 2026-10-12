@@ -20,8 +20,7 @@ artifact `VX7-Marketing.apk`. Locally: Android Studio (JDK 17) -> sync -> `:app:
 The workflow installs Gradle 8.9 itself; no wrapper is committed.
 
 ## Status
-Not yet compiled or run by the author of this ZIP. The first GitHub Actions run is the first real
-compile and unit-test check; fix any reported error and re-run.
+Not yet compiled locally. On failure the workflow prints the real compiler error and uploads build.log.
 
 ## Known limits
 - The unsaved record form survives rotation but is lost if Android kills the app process.
