@@ -258,8 +258,8 @@ fun SettingsScreen(vm: Vm, pad: PaddingValues, go: (String) -> Unit) {
     LazyColumn(contentPadding = contentPad(pad), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         item { SectionTitle("THEME") }
         items(listOf("system" to "Follow system", "light" to "Light", "dark" to "Dark")) { (k, l) ->
-            Row(Modifier.fillMaxWidth().clickable { vm.setTheme(k) }, verticalAlignment = Alignment.CenterVertically) {
-                RadioButton(selected = vm.theme == k, onClick = { vm.setTheme(k) }); Text(l)
+            Row(Modifier.fillMaxWidth().clickable { vm.changeTheme(k) }, verticalAlignment = Alignment.CenterVertically) {
+                RadioButton(selected = vm.theme == k, onClick = { vm.changeTheme(k) }); Text(l)
             }
         }
         item {
@@ -267,7 +267,7 @@ fun SettingsScreen(vm: Vm, pad: PaddingValues, go: (String) -> Unit) {
             var open by remember { mutableStateOf(false) }
             Box {
                 OutlinedButton(onClick = { open = true }) { Text(vm.defaultUnit); Icon(Icons.Default.ArrowDropDown, null) }
-                DropdownMenu(open, { open = false }) { UNITS.filter { it != "Other" }.forEach { u -> DropdownMenuItem(text = { Text(u) }, onClick = { vm.setDefaultUnit(u); open = false }) } }
+                DropdownMenu(open, { open = false }) { UNITS.filter { it != "Other" }.forEach { u -> DropdownMenuItem(text = { Text(u) }, onClick = { vm.changeDefaultUnit(u); open = false }) } }
             }
         }
         item { SectionTitle("DATA") }

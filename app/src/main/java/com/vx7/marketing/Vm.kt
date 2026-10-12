@@ -59,8 +59,8 @@ class Vm(app: Application) : AndroidViewModel(app) {
     val hist = PeriodState()
     val rep = PeriodState()
 
-    fun setTheme(v: String) { theme = v; prefs.edit().putString("theme", v).apply() }
-    fun setDefaultUnit(v: String) { defaultUnit = v; prefs.edit().putString("unit", v).apply() }
+    fun changeTheme(v: String) { theme = v; prefs.edit().putString("theme", v).apply() }
+    fun changeDefaultUnit(v: String) { defaultUnit = v; prefs.edit().putString("unit", v).apply() }
 
     // ------------------------------------------------------------ record draft
     var editingId by mutableLongStateOf(0L)
