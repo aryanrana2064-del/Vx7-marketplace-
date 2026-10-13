@@ -7,7 +7,39 @@ import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 
-val UNITS = listOf("Box", "Packet", "Piece", "Carton", "Bag", "Kg", "Gram", "Litre", "Dozen", "Bundle", "Set", "Roll", "Other")
+const val CUSTOM = "Custom"
+val UNITS = listOf("Piece", "Box", "Packet", "Carton", "Bag", "Kg", "Gram", "Litre", "Dozen", "Bundle", "Set", "Roll", CUSTOM)
+
+/** Unit stored in the database: the typed name when "Custom" is chosen. */
+fun resolveUnit(choice: String, custom: String): String = if (choice == CUSTOM) custom.trim() else choice
+fun isStdUnit(u: String) = u in UNITS && u != CUSTOM
+
+// ---------------------------------------------------------------- rates (reference data only, never billing)
+data class Rates(val real: Double?, val last: Double?)
+
+private fun same(a: Double?, b: Double?) = (a == null && b == null) || (a != null && b != null && Math.abs(a - b) < 1e-9)
+
+/** Real Rate changed -> old Real Rate becomes Last Rate. Unchanged -> nothing moves. */
+fun nextRates(oldReal: Double?, oldLast: Double?, newReal: Double?): Rates =
+    if (same(oldReal, newReal)) Rates(oldReal, oldLast) else Rates(newReal, oldReal ?: oldLast)
+
+/** Same as nextRates, but a Last Rate the user typed by hand wins. */
+fun resolveRates(oldReal: Double?, oldLast: Double?, newReal: Double?, lastInput: Double?, lastEdited: Boolean): Rates {
+    val auto = nextRates(oldReal, oldLast, newReal)
+    return if (lastEdited) Rates(auto.real, lastInput) else auto
+}
+
+/** Blank is allowed (null). Returns Pair(valid, value). Negative, NaN or absurd values are invalid. */
+fun parseRate(s: String): Pair<Boolean, Double?> {
+    val t = s.trim().replace(',', '.').removePrefix("\u20B9").trim()
+    if (t.isEmpty()) return true to null
+    val v = t.toDoubleOrNull() ?: return false to null
+    return if (v >= 0.0 && v.isFinite() && v <= 1_000_000_000.0) true to v else false to null
+}
+
+fun fmtRate(d: Double?): String = if (d == null) "\u2014" else "\u20B9" + BigDecimal.valueOf(d).stripTrailingZeros().toPlainString()
+fun rateText(d: Double?): String = if (d == null) "" else BigDecimal.valueOf(d).stripTrailingZeros().toPlainString()
+fun fmtStamp(t: Long): String = fmtDate(t) + ", " + fmtTime(t)
 
 /** Formats a quantity exactly as typed: 2.0 -> "2", 1.50 -> "1.5". */
 fun fmtQty(q: Double): String = BigDecimal(q.toString()).stripTrailingZeros().toPlainString()
